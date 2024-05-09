@@ -4,8 +4,6 @@ use std::{
     task::{Context, Poll},
 };
 
-use macros::my_ready;
-
 #[tokio::main]
 async fn main() {
     // let mut cx = Context::from_waker(futures::task::noop_waker_ref());
@@ -48,4 +46,15 @@ fn poll_fut(cx: &mut Context<'_>) -> Poll<usize> {
     let mut fut = future::ready(42);
     let fut = Pin::new(&mut fut);
     my_ready!(fut.poll(cx))
+}
+
+// my_ready! => Poll::Ready / Poll::Pending
+#[macro_export]
+macro_rules! my_ready {
+    ($expr:expr) => {
+        match $expr {
+            std::task::Poll::Ready(v) => std::task::Poll::Ready(v),
+            std::task::Poll::Pending => return std::task::Poll::Pending,
+        }
+    };
 }
